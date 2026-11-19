@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <meta name="description" content="Endereço não encontrado no CertiMarch. Volte ao catálogo de certificações.">
+  <title>Página não encontrada · CertiMarch</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --background: #f7f7fb;
+      --line: #e4e0ec;
+      --ink: #201c33;
+      --muted: #605a70;
+      --accent: #5c39b4;
+      --surface: #fff;
+    }
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --background: #151222;
+      --line: #393047;
+      --ink: #f2ecfc;
+      --muted: #c0b6d0;
+      --accent: #cbb0ff;
+      --surface: #1f1a2e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--background);
+      color: var(--ink);
+      font: 1rem/1.55 Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    main {
+      width: min(100%, 590px);
+      padding: clamp(25px, 6vw, 54px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+    }
+    .brand { margin: 0 0 28px; font-size: 1.24rem; font-weight: 800; letter-spacing: -.045em; }
+    .brand span { color: var(--accent); }
+    .code { color: var(--accent); font: 700 .88rem Consolas, monospace; letter-spacing: .06em; }
+    h1 { margin: 9px 0; font-size: clamp(1.95rem, 7vw, 2.8rem); line-height: 1.12; letter-spacing: -.055em; }
+    p { color: var(--muted); margin: 13px 0 27px; }
+    a {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      min-height: 44px;
+      padding: 8px 13px;
+      text-decoration: none;
+      font-size: .92rem;
+      font-weight: 700;
+      border-radius: 9px;
+      background: #5c39b4;
+      color: #fff;
+    }
+    a:hover { background: #6945c6; }
+    a:focus-visible { outline: 3px solid #8967df; outline-offset: 4px; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">Certi<span>March</span></div>
+    <span class="code">Erro 404</span>
+    <h1>Página não encontrada</h1>
+    <p>O endereço pode ter mudado. Volte ao catálogo para encontrar o portal da sua certificação.</p>
+    <a id="home-link" href="./index.html"><span aria-hidden="true">←</span> <span id="home-label">Voltar ao catálogo</span></a>
+  </main>
+  <script>
+    'use strict';
+
+    const home = document.getElementById('home-link');
+    let theme;
+    try { theme = localStorage.getItem('trilhacert.theme'); } catch {}
+    document.documentElement.dataset.theme = theme ||
+      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+    // O Pages serve este HTML na URL que falhou. Procure a raiz do catálogo
+    // usando um recurso do próprio site em vez de presumir o nome do repositório.
+    async function findHome() {
+      if (!['http:', 'https:'].includes(location.protocol)) return home.href;
+      let directory = new URL('.', location.href);
+      while (true) {
+        try {
+          const asset = new URL('assets/site-theme.js', directory);
+          const response = await fetch(asset, { mode: 'same-origin', redirect: 'error' });
+          if (response.ok && (await response.text()).startsWith('/* Trilha Cert — tema compartilhado */')) {
+            return new URL('index.html', directory).href;
+          }
+        } catch {}
+        const parent = new URL('..', directory);
+        if (parent.href === directory.href) return home.href;
+        directory = parent;
+      }
+    }
+
+    const translations = {
+      'pt-BR': [
+        'Página não encontrada',
+        'O endereço pode ter mudado. Volte ao catálogo para encontrar o portal da sua certificação.',
+        'Voltar ao catálogo',
+        'Erro 404',
+      ],
+      en: [
+        'Page not found',
+        'The address may have changed. Go back to the catalog to find your certification portal.',
+        'Back to catalog',
+        'Error 404',
+      ],
+      es: [
+        'Página no encontrada',
+        'Es posible que la dirección haya cambiado. Vuelve al catálogo para encontrar el portal de tu certificación.',
+        'Volver al catálogo',
+        'Error 404',
+      ],
+    };
+
+    function translatePage(language, catalogUrl) {
+      const [heading, message, back, code] = translations[language];
+      document.documentElement.lang = language;
+      document.title = heading + ' · CertiMarch';
+      document.querySelector('meta[name="description"]').content = message;
+      document.querySelector('h1').textContent = heading;
+      document.querySelector('main p').textContent = message;
+      document.querySelector('.code').textContent = code;
+      document.getElementById('home-label').textContent = back;
+      home.href = window.trilhaI18n.withLanguage(catalogUrl);
+    }
+
+    let resolving = true;
+    const destination = findHome().then(catalogUrl => new Promise(resolve => {
+      home.href = catalogUrl;
+      const script = document.createElement('script');
+      script.src = new URL('./assets/site-i18n.js', catalogUrl).href;
+      const complete = () => {
+        resolving = false;
+        resolve(home.href);
+      };
+      script.onload = () => {
+        const update = language => translatePage(language, catalogUrl);
+        window.trilhaI18n.onChange(update);
+        update(window.trilhaI18n.get());
+        complete();
+      };
+      script.onerror = complete;
+      document.head.append(script);
+    }));
+    home.addEventListener('click', event => {
+      if (!resolving || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      destination.then(url => location.assign(url));
+    });
+  </script>
+</body>
+</html>
