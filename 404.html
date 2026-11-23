@@ -78,7 +78,7 @@
 
     const home = document.getElementById('home-link');
     let theme;
-    try { theme = localStorage.getItem('trilhacert.theme'); } catch {}
+    try { theme = localStorage.getItem('certimarch.theme') || localStorage.getItem('trilhacert.theme'); } catch {}
     document.documentElement.dataset.theme = theme ||
       (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
 
@@ -91,7 +91,7 @@
         try {
           const asset = new URL('assets/site-theme.js', directory);
           const response = await fetch(asset, { mode: 'same-origin', redirect: 'error' });
-          if (response.ok && (await response.text()).startsWith('/* Trilha Cert — tema compartilhado */')) {
+          if (response.ok && /^\/\* (CertiMarch|Trilha Cert) — tema compartilhado \*\//.test(await response.text())) {
             return new URL('index.html', directory).href;
           }
         } catch {}
