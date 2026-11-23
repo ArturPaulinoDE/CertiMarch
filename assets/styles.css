@@ -678,3 +678,8 @@ a { color: inherit; }
   .language-code { display: none; }
   .language-picker button { min-width: 32px; padding-inline: 5px; }
 }
+
+/* Selos do cartão */
+.card-tags { display: inline-flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.level.beta { color: var(--vendor-text); border-color: currentColor; background: transparent; }
+.vendor-mark { font-size: .95rem; letter-spacing: 0; }

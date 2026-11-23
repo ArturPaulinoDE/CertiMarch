@@ -187,11 +187,13 @@ function translate(next) {
   for (const entry of entries) {
     const localizedCard = copy.cards[entry.code];
     if (localizedCard) [entry.title.textContent, entry.detail.textContent] = localizedCard;
-    const translatedHref = language === 'en' ? entry.link.dataset.portalEn
-      : language === 'es' ? entry.link.dataset.portalEs
+    const translatedHref = language === 'en' ? entry.link.dataset.hrefEn
+      : language === 'es' ? entry.link.dataset.hrefEs
       : null;
 
-    entry.link.href = i18n.withLanguage(translatedHref || entry.href);
+    const portalLocale = translatedHref ? language : 'pt-BR';
+    entry.link.href = i18n.withLanguage(translatedHref || entry.href, language);
+    entry.link.hreflang = portalLocale;
     const name = entry.title.textContent + ' (' + entry.certification.trim() + ')';
     entry.link.setAttribute('aria-label', copy.openPortalLabel.replace('{name}', name));
     entry.notice.textContent = copy.portalLanguage;

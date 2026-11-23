@@ -1,0 +1,16 @@
+/* CertiMarch — ajustes compartilhados dos portais (menu, celular e toque) */
+#menuFold{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #6684ac;border-radius:7px;background:#173153;color:#fff;font:600 13px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;cursor:pointer;white-space:nowrap}
+#menuFold:hover{background:#25466c}
+#menuFold:focus-visible{outline:3px solid #76d8fa;outline-offset:2px}
+@media (hover:none),(pointer:coarse){.global-search-btn kbd{display:none}}
+@media (max-width:600px){
+  .portal-navbar{padding:6px 10px}
+  #portalBrand .portal-subtitle{display:none}
+  #portalBrand .portal-title{font-size:14px;line-height:1.25}
+  .portal-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;width:100%}
+  .portal-nav .nav-tab{justify-content:flex-start;font-size:12px;padding:6px 8px;min-height:36px;width:100%}
+  .portal-nav .dropdown-wrap{grid-column:span 1;min-width:0}
+  .portal-nav .dropdown-wrap>.nav-tab{width:100%}
+  .active-indicator{display:none}
+  .global-search-btn,.portal-icon-btn{min-height:36px}
+}

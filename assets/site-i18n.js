@@ -2,7 +2,8 @@
 (() => {
   'use strict';
 
-  const key = 'trilhacert.lang';
+  const key = 'certimarch.lang';
+  const legacyKey = 'trilhacert.lang';
   const homeLabels = { 'pt-BR': 'Página inicial', en: 'Home', es: 'Inicio' };
   const browserLanguages = { pt: 'pt-BR', en: 'en', es: 'es' };
   const listeners = new Set();
@@ -22,6 +23,10 @@
     if (explicit) return explicit;
     try {
       memory = localStorage.getItem(key);
+      if (memory === null) {
+        memory = localStorage.getItem(legacyKey);
+        if (supported(memory)) localStorage.setItem(key, memory);
+      }
     } catch {}
     if (supported(memory)) return memory;
     const browser = (navigator.language || '').toLowerCase().split('-')[0];
@@ -51,8 +56,8 @@
     notify();
   }
 
-  function withLanguage(href) {
-    const explicit = urlLanguage();
+  function withLanguage(href, language = urlLanguage()) {
+    const explicit = supported(language) ? language : null;
     if (!explicit) return href;
     const [path, fragment] = href.split('#', 2);
     const [pathname, query] = path.split('?', 2);
@@ -66,21 +71,24 @@
   }
 
   window.addEventListener('storage', event => {
-    if (event.key === key || event.key === null) notify();
+    if (event.key === key || event.key === legacyKey || event.key === null) notify();
   });
   window.addEventListener('pageshow', notify);
   window.addEventListener('popstate', notify);
 
   window.trilhaI18n = { get, select, withLanguage, onChange };
 
-  // Os portais conservam o idioma original do conteúdo.
+  // Os portais traduzidos retornam ao catálogo no idioma da página.
   for (const link of document.querySelectorAll('[data-trilha-home]')) {
     const href = link.getAttribute('href');
     const label = link.querySelector('[data-home-label]');
     const update = language => {
-      link.lang = language;
-      link.href = withLanguage(href);
-      label.textContent = homeLabels[language];
+      const portalLanguage = document.documentElement.lang;
+      const translated = portalLanguage === 'en' || portalLanguage === 'es';
+      const labelLanguage = translated ? portalLanguage : language;
+      link.lang = labelLanguage;
+      link.href = withLanguage(href, translated ? portalLanguage : urlLanguage());
+      label.textContent = homeLabels[labelLanguage];
     };
     onChange(update);
     update(get());
